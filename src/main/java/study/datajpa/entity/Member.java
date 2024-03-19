@@ -11,6 +11,9 @@ import lombok.*;
 @Getter @Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED) //JPA는 기본생성자가 필수이다. JPA는 Proxy를 쓰는데 private로 하면 가져다 쓸수 없기 때문에 최소 protected로 열어놔야한다.
 @ToString(of = {"id", "username", "age"}) //연관관계 필드를 toString하면 무한루프를 돌 수 있기 때문에 지양하는게 좋음
+@NamedQuery(
+        name="Member.findByUsername",
+        query="select m from Member m where m.username = :username")
 public class Member {
 
     @Id @GeneratedValue
@@ -25,6 +28,11 @@ public class Member {
 
     public Member(String username) {
         this.username = username;
+    }
+
+    public Member(String username, int age) {
+        this.username = username;
+        this.age = age;
     }
 
     public Member(String username, int age, Team team) {
