@@ -1,10 +1,10 @@
 package study.datajpa.repository;
 
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
@@ -57,5 +57,34 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @Query("update Member m set m.age = m.age + 1 where m.age >= :age")
     int bulkAgePlus(@Param("age") int age);
 
+    @Query("select m from Member m left join fetch m.team")
+    List<Member> findMemberFetchJoin();
+
+    // @EntityGraph를 사용하면 위 메서드처럼 jpql을 사용하지 않고도 fetch join을 사용할 수 있다.
+    @Override
+    @EntityGraph(attributePaths = {"team"})
+    List<Member>findAll();
+
+    // jpql과 같이 사용 가능
+    @EntityGraph(attributePaths = {"team"})
+    @Query("select m from Member m")
+    List<Member> findMemberEntityGraph();
+
+    // 메소드 이름 쿼리와도 사용 가능
+    @EntityGraph(attributePaths = {"team"})
+    List<Member> findEntityGraphByUsername(@Param("username") String username);
+    // 간단할 때 @EntityGraph를 쓰고 복잡해지면 jpql로 fetch join을 쓴다.
+
+
+    // Query Hint
+    @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    Member findReaOnlyByUsername(String username);
+    // JPA는 더티체킹을 위해 스냅샷을 만들어 두는데 @QueryHint를 통해 readOnly를 true로 주면,
+    // 스냅샷을 만들지 않기 때문에 더티체킹에 의한 변경이 이뤄지지 않는다.
+    // QueryHint를 통해 최적화를 할 수 있지만, 특정 복잡한 API만 유의미한 최적화가 이뤄지기 때문에 모든 조회에 넣을 필요가 없다.
+    // 또한 대규모 트래픽이 유발되는 API라면 캐시가 더 필요하기 때문에 성능 테스트를 해보고 적용하자.
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Member> findLockByUsername(String username);
 
 }
