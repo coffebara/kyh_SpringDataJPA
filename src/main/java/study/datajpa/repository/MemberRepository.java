@@ -13,7 +13,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
+//핵심 비지니스 로직과 화면에 맞춘 복잡한 로직은 분리하는 것이 좋다. (라이프 사이클이 다르다!)
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
 
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
