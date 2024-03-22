@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.Optional;
 
 //핵심 비지니스 로직과 화면에 맞춘 복잡한 로직은 분리하는 것이 좋다. (라이프 사이클이 다르다!)
-public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom,
+        JpaSpecificationExecutor<Member>{
 
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 
@@ -88,4 +89,14 @@ public interface MemberRepository extends JpaRepository<Member, Long>, MemberRep
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     List<Member> findLockByUsername(String username);
 
+    List<UsernameOnly> findProjectionsByUsername(@Param("username") String username);
+
+    @Query(value = "select * from member where username =?", nativeQuery = true)
+    Member findByNativeQuery(String username);
+
+    @Query(value = "select m.member_id as id, m.username, t.name as teamName " +
+            " from member m left join team t",
+            countQuery = "select count(*) from member",
+            nativeQuery = true)
+    Page<MemberProjection> findByNativeProjection(Pageable pageable);
 }
